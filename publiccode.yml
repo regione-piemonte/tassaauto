@@ -1,0 +1,105 @@
+# This repository adheres to the publiccode.yml standard by including this 
+# metadata file that makes public software easily discoverable.
+# More info at https://github.com/italia/publiccode.yml
+
+publiccodeYmlVersion: '0.2'
+categories:
+  - digital-citizenship
+dependsOn:
+  open:
+    - name: Apache httpd
+      optional: false
+      version: '2.4'
+      versionMax: ''
+      versionMin: ''
+description:
+  it:
+    features:
+      - Frontend responsive ai servizi
+    genericName: Gestione Tassa Auto Piemonte
+    longDescription: >
+      ### Sistema Informativo Tassa Auto Piemonte
+
+
+      **PWA: Servizi al cittadino**
+
+
+      È una web application realizzata in tecnica _responsive_, nativamente
+      adattabile ai dispositivi sia mobili che desktop. Nello specifico si
+      tratta di una _Single Page Application_ che rappresenta il Front-End per i
+      seguenti servizi:
+
+
+      - Memobollo;
+
+      - pagamenti online;
+
+      - ricevuta di un pagamento;
+
+      - calcola il bollo;
+
+      - osservazioni su avvisi di scadenza/accertamento;
+
+      - consulta una pratica;
+
+      - chiedi la rateizzazione;
+
+      - domanda di discarico o rimborso di cartella o ingiunzione di pagamento;
+
+      - Infobollo;
+
+      - stampa avviso di pagamento
+
+
+      ​
+    shortDescription: >-
+      Sistema Informativo Tassa Auto Piemonte è un canale di comunicazione
+      semplice e immediato con la Regione Piemonte in materia di tassa auto.
+developmentStatus: stable
+intendedAudience:
+  countries:
+    - it
+  scope:
+    - local-authorities
+it:
+  conforme:
+    gdpr: true
+    lineeGuidaDesign: true
+    misureMinimeSicurezza: true
+    modelloInteroperabilita: true
+  countryExtensionVersion: '0.2'
+  piattaforme:
+    anpr: true
+    cie: false
+    pagopa: true
+    spid: false
+  riuso:
+    codiceIPA: r_piemon
+landingURL: 'https://github.com/regione-piemonte/tassaauto.git'
+legal:
+  license: EUPL-1.2
+  mainCopyrightOwner: Regione Piemonte
+  repoOwner: Regione Piemonte
+localisation:
+  availableLanguages:
+    - it
+  localisationReady: true
+maintenance:
+  contacts:
+    - email: mirella.bauso@csi.it
+      name: Mirella Bauso
+  type: internal
+name: Sistema Informativo Tassa Auto Piemonte
+platforms:
+  - web
+  - windows
+  - mac
+  - linux
+  - ios
+  - android
+releaseDate: '2020-09-14'
+softwareType: standalone/web
+softwareVersion: '1.0'
+url: 'https://github.com/regione-piemonte/tassaauto'
+usedBy:
+  - Regione Piemonte
