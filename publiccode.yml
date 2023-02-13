@@ -86,8 +86,8 @@ localisation:
   localisationReady: true
 maintenance:
   contacts:
-    - email: mirella.bauso@csi.it
-      name: Mirella Bauso
+    - email: marco.dicuonzo@csi.it
+      name: Marco Di Cuonzo
   type: internal
 name: Sistema Informativo Tassa Auto Piemonte
 platforms:
