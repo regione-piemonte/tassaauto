@@ -1,4 +1,4 @@
-swagger: '2.0'
+swagger: "2.0"
 info:
   title: Stawapp API
   description: API REST per il backend della web application.
@@ -433,6 +433,8 @@ paths:
           description: parametri obbligatori non valorizzati
         '403':
           description: Proprietario non corrisponde al codice fiscale in input
+        '406':
+          description: Il pagamento e' gia' stato eseguito
         '409':
           description: Calcolo terminato con errore; Ulteriori dettagli nella risposta.
         '412':
@@ -810,7 +812,28 @@ paths:
           description: parametri obbligatori non valorizzati
         422:
           description: errore formato dati
-
+  /rateizzazione/valida:
+    post:
+      tags:
+        - rateizzazione
+      summary: Validazione domanda di rateizzazione
+      description: Validazione domanda di rateizzazione
+      operationId: validaPianoRateizzazione
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: request
+          required: true
+          schema:
+            $ref: '#/definitions/RequestSalvaDomandaRateizzazione'
+      responses:
+        200:
+          description: 'Validazione ok'
+        422:
+          description: 'Messaggio dinamico in base alla nuova normativa'
   #API ricevuta
   '/ricevuta/{iuv}':
     get:
@@ -949,6 +972,7 @@ paths:
           description: "Nessun dato trovato"
         '500':
           description: "Errore di sistema"
+  # Common API
   /common/informativaPrivacy:
     get:
       tags:
@@ -972,6 +996,152 @@ paths:
             properties:
               informativa:
                 type: string
+  /common/gradi-parentela:
+    get:
+      tags:
+        - common
+      summary: Restituisce i gradi di parentela
+      description: Servizio che restituisce i gradi di parentela
+      operationId: getGradoParentela
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: 'Operazione conclusa con successo'
+          schema:
+            type: array
+            description: 'Lista dei gradi di parantela'
+            items:
+                $ref: '#/definitions/CodiceDescrizioneVO'
+        '404':
+          description: 'Nessun dato trovato'
+  /common/veicoli/tipologie:
+    get:
+      tags:
+        - common
+      summary: Restituisce le tipologie di veicolo
+      description: Servizio che restituisce le tipologie di veicolo
+      operationId: getTipologieVeicoli
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      responses:
+        200:
+          description: 'Operazione conclusa con successo'
+          schema:
+            type: array
+            description: 'Lista delle tipologie dei veicoli'
+            items:
+              $ref: '#/definitions/CodiceDescrizioneVO'
+        404:
+          description: 'Nessun dato trovato'
+  /common/nazioni:
+    get:
+      tags:
+        - common
+      description: 'Recupera la lista delle nazioni'
+      operationId: getNazioni
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      responses:
+        200:
+          description: 'Lista delle province'
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/NazioneVO'
+        404:
+          description: 'Nessun dato trovato'
+        500:
+          description: 'Errore di sistema'
+  /common/province:
+    get:
+      tags:
+        - common
+      description: 'Recupera le lista delle province'
+      operationId: getProvince
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      responses:
+        200:
+          description: 'Lista delle province'
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/ProvinciaVO'
+        404:
+          description: 'Nessun dato trovato'
+        500:
+          description: 'Errore di sistema'
+  /common/comuni/{cod-provincia}:
+    get:
+      tags:
+        - common
+      description: 'Recupera le lista dei comuni'
+      operationId: getComuniByProvincia
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          required: true
+          type: string
+          name: cod-provincia
+          description: 'Valorizzare con l''attributo codice restituito dal servzio /common/province'
+        - in: query
+          required: true
+          type: string
+          example: '2019-01-01'
+          name: dataRiferimento
+          description: 'Data di riferimento per il quale si vuole recuperare la lista dei comuni, nel caso delle anagrafiche valorizzare con la data di nascita del contribuente'
+      responses:
+        200:
+          description: 'Lista dei comuni'
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/ComuneVO'
+        404:
+          description: 'Nessun dato trovato'
+        500:
+          description: 'Errore di sistema'
+  /common/parametri:
+    get:
+      tags:
+        - common
+      summary: Restituisce il parametri applicativo richiesto
+      description: Restituisce il parametri applicativo richiesto
+      operationId: getParametroApplicativo
+      parameters:
+        - in: query
+          type: string
+          name: paramName
+          required: true
+          description: 'Nome del parametro configurati nell''enum ParametriApplicativi per i parametri disponibili'
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      responses:
+        200:
+          description: 'Operazione conclusa con successo'
+          schema:
+            type: object
+            description: 'Parametro applicativo'
+        400:
+          description: 'Il parametro indicato non esiste'
+        404:
+          description: 'Nessun dato trovato'
+        500:
+          description: 'Errore di sistema'
 
   /infoBollo/email/verifica:
     get:
@@ -1318,13 +1488,15 @@ paths:
           schema:
             $ref: '#/definitions/ResponseVerificaMemoBollo'
         '400':
-          description: parametri obbligatori non valorizzati
+          description: 'parametri obbligatori non valorizzati'
         '403':
-          description: codice fiscale non corrisponde al proprietario del veicolo
+          description: 'codice fiscale non corrisponde al proprietario del veicolo'
         '404':
-          description: veicolo non trovato
+          description: 'veicolo non trovato'
         '422':
-          description: formato errato parametri
+          description: 'Veicolo non conforme ai requisiti tecnici previsti OPPURE parametri inseriti non validi'
+        '500':
+          description: 'Errore di sistema'
   /memoBollo/email/richiestaAttivazione:
     post:
       tags:
@@ -1419,34 +1591,6 @@ paths:
           description: veicolo non trovato
         '422':
           description: formato errato parametri
-  /memoBollo/email/revoca:
-    put:
-      tags:
-        - memo bollo
-      summary: Conferma revoca email
-      description: servizio per revocare indirizzo mail
-      operationId: confermaRevocaMemoBolloEmail
-      consumes:
-        - application/json
-      produces:
-        - application/json
-      parameters:
-        - in: body
-          name: request
-          schema:
-            $ref: '#/definitions/RequestConfermaMemoBolloEmail'
-          required: true
-      responses:
-        '200':
-          description: revoca eseguita con successo
-          schema:
-            $ref: '#/definitions/EsitoOperazioneMemoBolloVO'
-        '400':
-          description: token di sicurezza non valido/scaduto
-        '404':
-          description: destinatario non trovato
-        '422':
-          description: Formato errato parametri
   /memoBollo/sms/richiestaAttivazione:
     post:
       tags:
@@ -1541,34 +1685,6 @@ paths:
           description: veicolo non trovato
         '422':
           description: formato errato parametri
-  /memoBollo/sms/revoca:
-    put:
-      tags:
-        - memo bollo
-      summary: Conferma revoca numero cell
-      description: servizio per revocare numero cell
-      operationId: confermaRevocaMemoBolloSms
-      consumes:
-        - application/json
-      produces:
-        - application/json
-      parameters:
-        - in: body
-          name: request
-          schema:
-            $ref: '#/definitions/RequestConfermaMemoBolloSms'
-          required: true
-      responses:
-        '200':
-          description: revoca eseguita con successo
-          schema:
-            $ref: '#/definitions/EsitoOperazioneMemoBolloVO'
-        '400':
-          description: token di sicurezza non valido/scaduto
-        '404':
-          description: destinatario non trovato
-        '422':
-          description: Formato errato parametri
 
   /verificaPratica/tipologia:
     get:
@@ -1818,11 +1934,74 @@ paths:
           schema:
             $ref: '#/definitions/OsservazioneAccertamentoVO'
         '404':
-          description: "Nessuna comunicazione provata per l’ID: <id> / Nessuna avviso di accertamento trovato"
+          description: "Nessuna comunicazione trovata per l’ID: <id> / Nessuna avviso di accertamento trovato"
         '422':
           description: "Formato errato parametri"
         '500':
           description: "Errore di sistema"
+  #API verifica pratica accertamenti
+  /verificaPratica/cerca/avvisoBonario:
+    get:
+      tags:
+        - verifica pratica
+      summary: ricerca pratica di un avviso bonario
+      description: "Servizio di ricerca pratica per coppia codice identificativo/codice fiscale"
+      operationId: getDettaglioOsservazioneAvvisoBonario
+      consumes:
+        - application/json
+        - application/xml
+      produces:
+        - application/json
+        - application/xml
+      parameters:
+        - in: query
+          name: identificativo
+          type: string
+          required: true
+          description: "Numero di protocollo"
+        - in: query
+          name: codiceFiscale
+          type: string
+          required: true
+          description: "Codice fiscale"
+      responses:
+        '200':
+          description: "Oggetto dettaglio"
+          schema:
+            $ref: '#/definitions/OsservazioneAvvisoBonarioVO'
+        '404':
+          description: "Nessuna comunicazione trovata per l’ID: <id> / Nessuna avviso di accertamento trovato"
+        '422':
+          description: "Formato errato parametri"
+        '500':
+          description: "Errore di sistema"
+  /verificaPratica/aggiorna/avvisoBonario:
+    put:
+      tags:
+        - verifica pratica
+      summary: "Modifica i riferimenti AVVISO BONARIO" 
+      description: "Modifica email e cellulare del destinatario dell'avviso bonario"
+      operationId: aggiornamentoRiferimentiAvvisoBonario
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: request
+          schema:
+            $ref: '#/definitions/RequestModificaRiferimentiOsservazione'
+          required: true
+          description: "Payload contenente i dati da modificare"
+      responses:
+        '200':
+          description: "Aggiornamento eseguito"
+        '400':
+          description: "I dati inseriti non sono corretti"
+        '422':
+          description: "Parametri non validi"
+        '500':
+          description: "Errore durante aggiornamento dati"
   /verificaPratica/modificaAccertamento:
     post:
       tags:
@@ -1895,7 +2074,7 @@ paths:
   /osservazione/accertamento/cerca:
     get:
       tags:
-        - accertamento
+        - avviso accertamento
       summary: ricerca avviso di accertamento
       description: "Metodo di ricerca dati avviso di accertamento"
       operationId: ricercaAvvisoAccertamento
@@ -1934,7 +2113,7 @@ paths:
   /osservazione/accertamento/allegato:
     post:
       tags:
-        - accertamento
+        - avviso accertamento
       summary: carica allegato
       description: "Carica un documento come allegato di un' osservazione di avviso di accertamento"
       operationId: caricaAllegatoAccertamento
@@ -1988,7 +2167,7 @@ paths:
   /osservazione/accertamento/allegato/{id}:
     delete:
       tags:
-        - accertamento
+        - avviso accertamento
       summary: elimina allegato
       description: "Elimina documento allegato precedentemente caricato"
       operationId: eliminaAllegatoAccertamento
@@ -2022,7 +2201,7 @@ paths:
   /osservazione/accertamento:
     post:
       tags:
-        - accertamento
+        - avviso accertamento
       summary: crea accertamento
       description: "Crea un'osservazione per avviso di acertamento"
       operationId: salvaOsservazioneAvvisoAccertamento
@@ -2045,6 +2224,161 @@ paths:
           description: "Nessuna comunicazione di accertamento per l'ID: <id>"
         412:
           description: "Non e' possibile inserire un'osservazione su avviso di accertamento, in quanto l'ID_PRATICA dell'avviso di accertamento non e' valorizzato."
+        409:
+          description: "Esiste un'osservazione in lavorazione per l'avviso indicato"
+        500:
+          description: "Errore di sistema"
+  /osservazione/avviso/bonario/cerca:
+    get:
+      tags:
+        - avviso bonario
+      summary: ricerca avviso bonario
+      description: "Metodo di ricerca dati avviso bonario"
+      operationId: ricercaAvvisoBonario
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: query
+          name: numeroRiferimento
+          type: string
+          required: true
+          description: "Numero riferimento avviso bonario"
+        - in: query
+          name: codiceFiscale
+          type: string
+          required: true
+          description: "Codice fiscale proprietario"
+      responses:
+        200:
+          description: "avviso bonario recuperato"
+          schema:
+            $ref: "#/definitions/AvvisoBonarioVO"
+        400:
+          description: "Campi richiesti non valorizzati!"
+        404:
+          description: "Avviso bonario non trovato!"
+        409:
+          description: "Esiste un'osservazione avviso bonario in lavorazione per l'avviso indicato. Non è possibile inserire una nuova osservazione."
+        412:
+          description: "Pratica non valorizzata"
+        422:
+          description: "Campi richiesti non valorizzati!"
+        500:
+          description: "Errore di sistema"
+  /osservazione/avviso/bonario/allegato:
+    post:
+      tags:
+        - avviso bonario
+      summary: carica allegato
+      description: "Carica un documento come allegato di un' osservazione di avviso bonario"
+      operationId: caricaAllegatoAvvisoBonario
+      consumes:
+        - multipart/form-data
+      produces:
+        - application/json
+      parameters:
+        - in: formData
+          name: upFile
+          type: file
+          description: "File da caricare"
+          required: true
+        - in: formData
+          name: numeroRiferimento
+          type: string
+          description: "Numero riferimento avviso"
+          required: true
+        - in: formData
+          name: codiceFiscale
+          type: string
+          description: "Codice fiscale proprietario"
+          required: true
+        - in: formData
+          name: targa
+          type: string
+          description: "Targa veicolo"
+          required: true
+        - in: formData
+          name: cognome
+          type: string
+          description: "Cognome proprietario"
+          required: true
+      responses:
+        200:
+          description: File caricato con successo
+          schema:
+            $ref: '#/definitions/AllegatoVO'
+        400:
+          description: "Parametri obbligatori non valorizzati"
+        404:
+          description: "Avviso non trovato"
+        406:
+          description: "Estensione file non è del tipo corretto"
+        409:
+          description: "Esiste un'osservazione in lavorazione per l'avviso indicato"
+        422:
+          description: "Formato errato parametri"
+        412:
+          description: "File supera la dimensione massima consentita"
+  /osservazione/avviso/bonario/allegato/{id}:
+    delete:
+      tags:
+        - avviso bonario
+      summary: elimina allegato
+      description: "Elimina documento allegato precedentemente caricato"
+      operationId: eliminaAllegatoAvvisoBonario
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: id
+          type: string
+          description: "Id allegato da eliminare"
+          required: true
+        - in: query
+          name: idAvviso
+          type: integer
+          description: "Identificativo chiave su TAU_T_AVVISO_Bonario"
+          format: int64
+          required: true
+      responses:
+        204:
+          description: "Documento eliminato con successo"
+        400:
+          description: "Parametro non valorizzato"
+        404:
+          description: "Avviso bonario trovato!"
+        409:
+          description: "Stato della pratica in <stato> , impossibile eliminare l’allegato!"
+        500:
+          description: "Errore di sistema"
+  /osservazione/avviso/bonario:
+    post:
+      tags:
+        - avviso bonario
+      summary: crea avviso bonario
+      description: "Crea un'osservazione per avviso bonario"
+      operationId: salvaOsservazioneAvvisoBonario
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: request
+          description: "Parametri creazione osservazione avviso di accertamento"
+          schema:
+            $ref: '#/definitions/RequestCreaOsservazioneAvvisoBonario'
+      responses:
+        200:
+          description: "Operazione terminata con successo"
+          schema:
+            $ref: '#/definitions/OsservazioneAvvisoBonarioVO'
+        404:
+          description: "Nessuna comunicazione di accertamento per l'ID: <id>"
         409:
           description: "Esiste un'osservazione in lavorazione per l'avviso indicato"
         500:
@@ -2329,6 +2663,41 @@ paths:
           description: "Codice IUV non puo' essere vuoto"
         '505':
           description: "Errore non previsto"
+  /sintesi/pagamento/rata:
+    get:
+      tags:
+        - sintesi
+      summary: "Stampa rate by idRiferimentoPiano, anno e codice fiscale"
+      operationId: consultaSintesiPagamentoRata
+      parameters:
+        - in: query
+          name: idRiferimentoPiano
+          type: string
+          required: true
+          description: "Numero di riferimento del piano di rateizzazione"
+        - in: query
+          name: anno
+          type: string
+          required: true
+          description: "Anno di riferimento del piano"
+        - in: query
+          name: cf
+          type: string
+          required: true
+          description: "Codice fiscale del contribuente"
+      responses:
+        '200':
+          description: "Sintesi del pagamento"
+          schema:
+            $ref: '#/definitions/SintesiPagamentoRataVO'
+        '404':
+          description: "Nessun dato trovato"
+        '409':
+          description: "Contiene un messaggio di errore dinamico restituito dalle componenti del calcolo tassa."
+        '422':
+          description: "Il numero di riferimento del piano non puo' essere vuoto"
+        '505':
+          description: "Errore non previsto"
   /sintesi/pagamento/scadenza:
     post:
       tags:
@@ -2392,14 +2761,26 @@ paths:
           name: tipo
           type: string
           enum:
-            - [SCADENZA, ACCERTAMENTO]
+            - [SCADENZA, ACCERTAMENTO, RATEIZZAZIONE, LETTERA_RATE]
           required: true
           description: "Tipologia del bollettino può assumere uno dei valori definiti nell'enum (oggetto TipoBollettinoVO)"
         - in: query
           name: iuv
           type: string
-          required: true
-          description: "Codice IUV"
+          required: false
+          description: "Codice IUV (required per scadenze/accertamenti)"
+        - in: query
+          name: idPianoRat
+          type: integer
+          format: int64
+          required: false
+          description: "Identificativo del piano di rateizzazione (required per bollettino rateizzazione lettera piano rateizzato)"
+        - in: query
+          name: nRata
+          type: integer
+          format: int32
+          required: false
+          description: "Numero della rata (se presente stampa singolo bollettino, se omesso tutti)"
       responses:
         '200':
           description: stringa di byte del file in formato PDF
@@ -2412,6 +2793,60 @@ paths:
           description: "Paramentri obbligatori non valorizzati"
         '505':
           description: "Errore non previsto"
+
+  # API Messaggi
+  /messages:
+    get:
+      tags:
+        - messages
+      description: 'Restituisce una lista di messaggi da visualizzare'
+      operationId: getMessages
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: query
+          name: identificativo
+          type: string
+          required: true
+          description: numero di protocollo
+      responses:
+        '200':
+          description: OK
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/MessaggioVO'
+        '404':
+          description: 'Nessun dato trovato'
+        '500':
+          description: 'Errore di sistema'
+  /messages/{id}:
+    get:
+      tags:
+        - messages
+      description: 'Restituisce uno specifico messaggio da visualizzare'
+      operationId: getMessagesById
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: path
+          name: id
+          type: integer
+          required: true
+          description: "Id del messaggio da recuperare"
+      responses:
+        '200':
+          description: OK
+          schema:
+            $ref: '#/definitions/MessaggioVO'
+        '404':
+          description: 'Nessun dato trovato'
+        '500':
+          description: 'Errore di sistema'
 
 definitions:
 
@@ -2434,6 +2869,53 @@ definitions:
       note:
         type: string
         description: Note inserite dall'utente
+      noteComunicazione:
+        type: string
+        description: Note inserite dall'operatore di back office
+      email:
+        type: string
+        description: Email inserita dall'utente
+      telefono:
+        type: string
+        description: Telefono inserito dall'utente
+      idComunicazione:
+        type: integer
+        format: int64
+      numeroProtocollo:
+        type: string
+      idPratica:
+        type: integer
+        format: int64
+      identificativoArchivio:
+        type: string
+      stato:
+        type: object
+        $ref: '#/definitions/StatoPraticaVO'
+      statoLavorazione:
+        type: object
+        $ref: '#/definitions/StatoPraticaVO'
+  OsservazioneAvvisoBonarioVO:
+    type: object
+    properties:
+      grigliaAvvisoBonario:
+        type: object
+        $ref: '#/definitions/GrigliaAvvisoBonarioVO'
+        description: Insieme dei dati scelti dalla maschera
+      avvisoBonario:
+        type: object
+        $ref: '#/definitions/AvvisoBonarioVO'
+        description: Avviso bonario inviato all'utente
+      allegati:
+        type: array
+        items:
+          $ref: '#/definitions/AllegatoVO'
+        description: Lista degli allegati
+      note:
+        type: string
+        description: Note inserite dall'utente
+      noteComunicazione:
+        type: string
+        description: Note inserite dall'operatore di back office
       email:
         type: string
         description: Email inserita dall'utente
@@ -2476,7 +2958,47 @@ definitions:
         type: object
         $ref: '#/definitions/GrigliaAccertamentoAltroVO'
         description: 'Griglia scelta altro'
+  GrigliaAvvisoBonarioVO:
+    type: object
+    description: 'Gli attributi grigliaAccertamentoPagato, grigliaAccertamentoNonPagato, grigliaAccertamentoAltro sono mutuamente esclusivi, quindi solo uno va valorizzato.'
+    required:
+      - grigliaAvvisoBonarioPagato #Se non valorizzato grigliaAvvisoBonarioNonPagato grigliaAvvisoBonarioAltro
+      - grigliaAvvisoBonarioNonPagato #Se non valorizzato grigliaAvvisoBonarioPagato grigliaAvvisoBonarioAltro
+      - grigliaAvvisoBonarioAltro #Se non valorizzato grigliaAvvisoBonarioNonPagato grigliaAvvisoBonarioPagato
+    properties:
+      grigliaAvvisoBonarioPagato:
+        type: object
+        $ref: '#/definitions/GrigliaAvvisoBonarioPagatoVO'
+        description: 'Griglia scelta pagamento effettuato'
+      grigliaAvvisoBonarioNonPagato:
+        type: object
+        $ref: '#/definitions/GrigliaAvvisoBonarioNonPagatoVO'
+        description: 'Griglia scelta pagamento non effettuato'
+      grigliaAvvisoBonarioAltro:
+        type: object
+        $ref: '#/definitions/GrigliaAvvisoBonarioAltroVO'
+        description: 'Griglia scelta altro'
   GrigliaAccertamentoPagatoVO:
+    type: object
+    properties:
+      pagamentiCorretti:
+        type: boolean
+      targaErrata:
+        type: boolean
+      scadenzaErrata:
+        type: boolean
+      veicoloRitargato:
+        type: boolean
+      pagamentoAltraRegioneProvincia:
+        type: boolean
+      numeroQuietanza:
+        type: string
+      dataPagamento:
+        type: string
+        format: date
+      ufficioAccettante:
+        type: string
+  GrigliaAvvisoBonarioPagatoVO:
     type: object
     properties:
       pagamentiCorretti:
@@ -2546,6 +3068,33 @@ definitions:
       testo:
         type: string
   GrigliaAccertamentoNonPagatoVO:
+    type: object
+    properties:
+      grigliaVenditaVeicolo:
+        type: object
+        $ref: '#/definitions/GrigliaVOVenduto'
+      grigliaRadiatoDemolizione:
+        type: object
+        $ref: '#/definitions/GrigliaVORadiatoDemolizione'
+      grigliaRadiatoEsportazione:
+        type: object
+        $ref: '#/definitions/GrigliaVORadiato'
+      grigliaPrivazioneDisponibilita:
+        type: object
+        $ref: '#/definitions/GrigliaPrivazioneDisponibilitaVO'
+      grigliaVeicoloMaiPosseduto:
+        type: object
+        $ref: '#/definitions/GrigliaVeicoloMaiPossedutoVO'
+      grigliaTrasferimentoRegione:
+        type: object
+        $ref: '#/definitions/GrigliaVOTrasferimentoRegione'
+      grigliaCompetevaAltroSoggetto:
+        type: object
+        $ref: '#/definitions/GrigliaCompetevaAltroSoggettoVO'
+      grigliaEsenzioni:
+        type: object
+        $ref: '#/definitions/GrigliaEsenzioniVO'
+  GrigliaAvvisoBonarioNonPagatoVO:
     type: object
     properties:
       grigliaVenditaVeicolo:
@@ -2661,6 +3210,15 @@ definitions:
         type: object
         $ref: '#/definitions/GrigliaEsenzioniDisabiliVO'
   GrigliaAccertamentoAltroVO:
+    type: object
+    properties:
+      grigliaDatiTecniciErrati:
+        type: object
+        $ref: '#/definitions/GrigliaVODatiVeicoloRettifica'
+      grigliaDirittoRiduzione:
+        type: object
+        $ref: '#/definitions/GrigliaDirittoRiduzioneVO'
+  GrigliaAvvisoBonarioAltroVO:
     type: object
     properties:
       grigliaDatiTecniciErrati:
@@ -3180,7 +3738,7 @@ definitions:
         type: integer
         description: >-
           Indica se per il veicolo sono presenti ulteriori eventi da tenere in considerazione ( es. radiazioni , agevolazioni ). Può assumere i seguenti valori :
-          - 0 = nessun'altro evento da considerare
+          - 0 = nessun altro evento da considerare
           - 1 = sono presenti altri eventi
       scadenza:
         type: string
@@ -3566,6 +4124,8 @@ definitions:
         $ref: '#/definitions/StatoPraticaVO'
       telefono:
         type: string
+      note:
+        type: string
   ParametroScadenzaVO:
     type: object
     properties:
@@ -3854,6 +4414,24 @@ definitions:
         example: '''22/02/2019'' o null'
       note:
         type: string
+  VeicoloVO:
+    type: object
+    description: Veicolo
+    properties:
+      idVeicolo:
+        type: integer
+        description: id Veicolo
+        format: int64
+        example: 24271773
+      targa:
+        type: string
+        description: la targa del veicolo
+        example: AAXXXBB
+      tipoVeicolo:
+        $ref: '#/definitions/TipoVeicolo'
+      descrizione:
+        type: string
+        description: Esplicativo 
   TipoVeicolo:
     type: object
     description: Tipologia veicolo
@@ -3887,6 +4465,10 @@ definitions:
         type: string
         description: identificativo univoco di pagamento
         example: RF341603300030T0400000001
+      dataOperazione:
+        type: string
+        description: data operazione
+        example: 'yyyy-MM-dd'
       email:
         type: string
         description: >-
@@ -3915,6 +4497,9 @@ definitions:
         type: string
         description: numero cellulare
         example: 33312345678
+      note:
+        type: string
+        description: 'Note inserite dal contribuente'
   RequestCreaOsservazioneAvvisoAccertamento:
     type: object
     properties:
@@ -3929,6 +4514,31 @@ definitions:
           $ref: '#/definitions/AllegatoVO'
       attributi:
         $ref: '#/definitions/GrigliaAccertamentoVO'
+      email:
+        type: string
+        description: indirizzo email
+        example: mario.rossi@csi.it
+      cell:
+        type: string
+        description: numero cellulare
+        example: 33312345678
+      note:
+        type: string
+        description: Note inserite dall'utente
+  RequestCreaOsservazioneAvvisoBonario:
+    type: object
+    properties:
+      idAvviso:
+        type: integer
+        description: identificativo chiave su TAU_T_AVVISO_BONARIO
+        format: int64
+        example: 24271773
+      allegati:
+        type: array
+        items:
+          $ref: '#/definitions/AllegatoVO'
+      attributi:
+        $ref: '#/definitions/GrigliaAvvisoBonarioVO'
       email:
         type: string
         description: indirizzo email
@@ -4341,12 +4951,44 @@ definitions:
       intestatario:
         type: object
         $ref: '#/definitions/IntestatarioVO'
-        description: "Dati dell'intestatatio"
+        description: "Dati dell'intestatario"
       tipoVeicolo:
         $ref: '#/definitions/TipoVeicolo'
         description: "Dati relativi al veicolo"
       targaVeicolo:
         type: string
+  # Avviso bonario
+  AvvisoBonarioVO:
+    type: object
+    properties:
+      idAvvisoBonario:
+        type: integer
+        format: int64
+        description: Id pratica
+      idPratica:
+        type: integer
+        format: int64
+      numeroProtocollo:
+        type: string
+        description: numero di protocollo
+      scadenza:
+        type: string
+        example: "yyyy-MM"
+      validita:
+        type: string
+        example: "yyyy-MM"
+      dataInvio:
+        type: string
+        example: "yyyy-MM-dd"
+      motivazione:
+        type: string
+      intestatario:
+        type: object
+        $ref: '#/definitions/IntestatarioVO'
+        description: "Dati dell'intestatatio"
+      veicolo:
+        $ref: '#/definitions/VeicoloVO'
+        description: "Dati relativi al veicolo"
   #Entità rata
   RataVO:
     type: object
@@ -4365,6 +5007,9 @@ definitions:
       codiceBollettino:
         type: string
         description: "Codice del bollettino"
+      stato:
+        type: string
+        description: "Stato della rata"
   #Response servizio di ricerca del pagamento rate
   ResponsePagamentoRataVO:
     type: object
@@ -4734,14 +5379,88 @@ definitions:
       iuv:
         description: "Codice IUV"
         type: string
+  SintesiPagamentoRataVO:
+    type: object
+    properties:
+      nRiferimento:
+        type: string
+        description: 'Numero di riferimento del piano di rateizzazione'
+      anno:
+        type: string
+        description: 'Anno di riferimento del piano di rateizzazione'
+      datiAnagrafici:
+        type: string
+        description: 'Cognome e nome del contribuente'
+      codiceFiscale:
+        type: string
+        description: 'Codice fiscalde del contribuente'
+      nTotaleRate:
+        type: integer
+        description: 'Numero totale delle rate del piano'
+      tassoApplicato:
+        type: number
+        format: double
+        description: ''
+      totaleGenerale:
+        type: number
+        format: double
+        description: 'Totale del piano di rateizzazione'
+      spesaIstruttoria:
+        type: number
+        format: double
+        description: 'Spesa istruttoria'
+      rate:
+        type: array
+        items:
+          $ref: '#/definitions/RataVO'
+        description: 'Lista delle rate associate al piano'
   #Tipo del bollettino
   TipoBollettinoVO:
     type: string
     enum: [SCADENZA, ACCERTAMENTO, LETTERA_SCADENZA, LETTERA_RATE, LETTERA_ACCERTAMENTO]
-
-# Added by API Auto Mocking Plugin
+  NazioneVO:
+    type: object
+    description: 'Eredita le proprieta da DecodificaVO, nel codice troviamo il codice nazione nella descrizone il nome'
+    allOf:
+      - $ref: '#/definitions/DecodificaVO'
+  ProvinciaVO:
+    type: object
+    description: 'Eredita le proprieta da DecodificaVO, nel codice troviamo il codice provincia nella descrizone il nome'
+    allOf:
+      - $ref: '#/definitions/DecodificaVO'
+  ComuneVO:
+    type: object
+    description: 'Eredita le proprieta da DecodificaVO, nel codice troviamo il codice comune nella descrizone il nome'
+    allOf:
+      - $ref: '#/definitions/DecodificaVO'
+    properties:
+      cap:
+        type: string
+        description: 'CAP del comune'
+  MessaggioVO:
+    type: object
+    properties:
+      idMessaggio:
+        type: integer
+        format: int32
+        description: 'Identificativo del messaggio'
+      messaggio:
+        type: string
+        description: 'Testo del messaggio'
+      priorita:
+        type: integer
+        format: int32
+        description: 'Priorita'' del messaggio da 1 a N'
+      tipo:
+        type: string
+        description: 'Tipologia del messaggio ERROR, WARN, SUCCESS, INFO'
+  ParametriApplicativi:
+    type: string
+    enum: ['DICH_SOST_CERT', 'DICH_SOST_NOT']
 host: virtserver.swaggerhub.com
-basePath: /vacammar/STAWAPP/1.0.0
+# basePath: /stawapp/rest
 schemes:
   - https
   - http
+# Added by API Auto Mocking Plugin
+basePath: /andreafontanelli/stawapp/1.0.0

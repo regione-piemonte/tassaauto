@@ -7,7 +7,7 @@
 # Getting Started
 L'applicativo **Sistema Informativo Tassa Auto Piemonte** è costituito dai seguenti componenti:
 - [PWA: Servizi al cittadino](https://github.com/regione-piemonte/tassaauto-servizialcittadino) (Front-End Web)
-- [Tassa Auto Servizi](#) (Servizi REST) le cui specifiche sono reperibili [qui](https://github.com/regione-piemonte/tassaauto/tassa-auto-1.0.0-swagger.yaml)
+- [Tassa Auto Servizi](#) (Servizi REST) le cui specifiche sono reperibili [qui](https://github.com/regione-piemonte/tassaauto/blob/master/tassa-auto-1.0.0-swagger.yaml)
 
 # Prerequisites
 I prerequisiti per l'installazione dell'applicativo sono i seguenti:
